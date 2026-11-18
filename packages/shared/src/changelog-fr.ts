@@ -4,6 +4,7 @@ export const frEntries: ChangelogEntry[] = [
   {
     version: "0.23.0",
     highlights: [
+      "Basculez entre lecture seule et modification dans les classeurs Excel locaux pris en charge, puis enregistrez les valeurs des cellules dans le fichier XLSX d’origine.",
       "Activez OpenAI Fast par modèle et utilisez /fast dans une conversation pour demander un service prioritaire ; les limites d’abonnement peuvent baisser plus vite ou le coût par token augmenter.",
       "Les visualisations intégrées se chargent plus vite grâce à des outils de graphique réutilisables ; les scripts en échec affichent désormais des erreurs utiles au lieu de cartes vides.",
       "Testez les serveurs MCP depuis le dossier du projet sélectionné ; après un test réussi, les sessions du projet peuvent récupérer les connexions inactives en échec.",

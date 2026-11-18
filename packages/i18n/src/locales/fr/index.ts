@@ -2390,6 +2390,14 @@ sklm: {
       "binary": "Fichier binaire — aperçu indisponible",
       "tooLarge": "Le fichier est trop volumineux pour être prévisualisé",
       "previewTruncated": "Aperçu tronqué",
+      sheet: {
+        mode: "Mode du tableur", read: "Lecture seule", edit: "Modifier", save: "Enregistrer", discard: "Annuler les modifications",
+        discardConfirm: "Abandonner les modifications non enregistrées ?", saving: "Enregistrement…", unsaved: "Modifications non enregistrées",
+        valuesOnly: "Seuls les textes, nombres et booléens sont modifiables. Les formules, la mise en forme et la structure sont conservées.",
+        conflict: "Le fichier a été modifié ailleurs. Le brouillon est conservé. Rouvrez le fichier pour vérifier la version actuelle.",
+        saveFailed: "Enregistrement impossible. Le brouillon est conservé. Vérifiez les autorisations et les verrous Excel.",
+        cachedFormulas: "Les résultats des formules seront actualisés à la réouverture dans Excel.",
+      },
       "openFailed": "Impossible d’ouvrir le fichier avec l’application par défaut."
     }
   },

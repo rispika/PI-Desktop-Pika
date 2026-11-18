@@ -473,6 +473,7 @@ export const IPC = {
     browserGetPages: "pi-desktop/browser/getPages",
     fsList: "pi-desktop/fs/list",
     fsRead: "pi-desktop/fs/read",
+    fsSaveSpreadsheet: "pi-desktop/fs/saveSpreadsheet",
     fsReadImageDataUrl: "pi-desktop/fs/readImageDataUrl",
     statsGetTokenUsageHistory: "pi-desktop/stats/getTokenUsageHistory",
     fsReveal: "pi-desktop/fs/reveal",

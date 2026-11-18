@@ -55,7 +55,7 @@ Principles:
 | `commandPalette` | Command palette search and execution |
 | `workspace` | Workspace selection and legacy working-tree diagnostics |
 | `browser` | Work panel embedded preview navigation/bounds/visibility + state events |
-| `fs` | Work panel workspace file listing/reading/reveal, chat file-reference completion against the project, session scratch, and attachment roots, plus user-initiated open with the OS default handler (read-only) |
+| `fs` | Work panel file listing/reading/reveal/open and file-reference completion, plus scoped, revision-checked local XLSX cell saves |
 | `window` | Frameless window state, controls, and compatibility work-panel geometry channels |
 | `menu` | Allowlisted application-menu commands and native editing/window actions |
 | `notification` | Durable inbox list/read/clear, new/activated events, and native-notification sound cues |
@@ -1966,7 +1966,7 @@ Renderer IPC kept for the Plan-safe preview facade and URL fallback:
   new Browser resource tab for the active local session; the Browser plugin
   must be enabled. This route grants no `browser.cdp` access.
 
-### fs (read-only)
+### fs
 
 - `fs/list({path})` → entries sorted dirs-first; ignores `.git`,
   `node_modules`, and the default ignore subset of
@@ -1995,6 +1995,26 @@ Renderer IPC kept for the Plan-safe preview facade and URL fallback:
   containment only: the ADR 0339 external-file rule does not apply, so a
   model-written image reference cannot render an arbitrary local image. Never returns non-image bytes. Renderer-only;
   not a plugin host API.
+- `fs/saveSpreadsheet({path, revision, patches, sessionId?})` → spreadsheet
+  `OfficePreview` with a new SHA-256 `revision`. Main-window renderer only;
+  unavailable through remote IPC and the plugin SDK. Saves existing local
+  `.xlsx` files contained by realpath in the effective session workspace or
+  that session's scratch root. Wider read-only roots and external files do
+  not grant write access. Each patch contains zero-based `sheet`, `row`,
+  `column`, and `value` (text, finite number, boolean, or null to clear).
+  At most 15000 unique cells per request, 20 sheets, 250 rows and 60 columns;
+  strings are capped at 4000 characters. Formula input/cells, merged follower
+  cells, protected/hidden sheets, truncated previews, macro packages and
+  signed workbooks cannot be edited. Original cell styles and unrelated
+  archive parts remain in the source package. Formula caches are not
+  recalculated in-app; the workbook requests recalculation in Excel.
+  Stale revisions fail with `SPREADSHEET_CONFLICT`; overlapping saves to the
+  same target fail with `SPREADSHEET_BUSY`. A validated temporary package is
+  synced and renamed over the original after scope/revision rechecks.
+  The renderer defaults to Read only, offers Edit for eligible files, and
+  keeps unsaved drafts in memory across panel/session switches. Save and
+  explicit discard clear drafts; closing the renderer with drafts requests
+  confirmation. Drafts are not durable across application restarts.
 - `fs/reveal({path})` → reveal in Finder. Same rules as `fs/read`,
   including the ADR 0339 external-file rule.
 - `fs/open({path, mimeType?})` → open an existing regular file with the OS

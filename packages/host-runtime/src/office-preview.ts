@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { XMLBuilder } from "fast-xml-parser";
 import { parseSpreadsheet } from "./office-spreadsheet.ts";
 import { newBudget, takeBudget, nodeName, nodeChildren, nodeAttr, directChildren, descendants, firstDescendant, textContent, parseXml, parseRelationships, resolvePartPath, relationshipPartPath, readArchiveBytes, readArchiveText, type XmlNode, type PreviewBudget } from "./office-xml.ts";
@@ -358,6 +359,15 @@ export async function previewOfficeFile(
   if (!officeXml) return undefined;
 
   if (format === "word") return parseWord(zip, officeXml);
-  if (format === "spreadsheet") return parseSpreadsheet(zip, officeXml, officePath);
+  if (format === "spreadsheet") {
+    const result = await parseSpreadsheet(zip, officeXml, officePath);
+    if (result.format === "spreadsheet") {
+      result.revision = createHash("sha256").update(buffer).digest("hex");
+      result.editable = /\.xlsx$/i.test(displayPath) && !result.truncated && !result.sheets.some(sheet => sheet.protected) &&
+        !firstDescendant(parseXml(officeXml), "workbookProtection") &&
+        !Object.keys(zip.files).some(name => /(?:^_xmlsignatures\/|vbaProject\.bin$)/i.test(name));
+    }
+    return result;
+  }
   return parsePresentation(zip, officeXml, officePath);
 }

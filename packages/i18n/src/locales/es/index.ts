@@ -2390,6 +2390,14 @@ sklm: {
       "binary": "Archivo binario: vista previa no disponible",
       "tooLarge": "El archivo es demasiado grande para obtener una vista previa",
       "previewTruncated": "Vista previa truncada",
+      sheet: {
+        mode: "Modo de hoja", read: "Solo lectura", edit: "Editar", save: "Guardar", discard: "Descartar cambios",
+        discardConfirm: "¿Descartar los cambios sin guardar?", saving: "Guardando…", unsaved: "Cambios sin guardar",
+        valuesOnly: "Solo se pueden editar textos, números y booleanos. Se conservan las fórmulas, el formato y la estructura.",
+        conflict: "El archivo cambió externamente. Se conserva el borrador. Vuelva a abrir el archivo para revisar la versión actual.",
+        saveFailed: "No se pudo guardar. Se conserva el borrador. Compruebe los permisos y los bloqueos de Excel.",
+        cachedFormulas: "Los resultados de las fórmulas se actualizarán al abrir el archivo en Excel.",
+      },
       "openFailed": "No se pudo abrir el archivo con la aplicación predeterminada."
     }
   },

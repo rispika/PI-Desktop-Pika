@@ -43,6 +43,7 @@ import {
   readUserOpenableFile,
   resolveRealOpenablePath,
   resolveUserOpenablePath,
+  saveSpreadsheet,
 } from "@pi-desktop/host-runtime";
 import { openReviewedFile } from "../reviewed-file-open";
 import { openableMp4Path } from "../open-attachment-video";
@@ -975,14 +976,30 @@ handleWithEvent(
           throw error;
         }
       }
-      return readUserOpenableFile(
+      const result = await readUserOpenableFile(
         requested,
         workspaceRoot,
         await fsExtraRoots(workspaceRoot),
         input.mimeType,
       );
+      if (result.office?.format === "spreadsheet") {
+        const scratch = await sessionScratchRoot(input.sessionId);
+        result.office.editable = result.office.editable === true &&
+          !!await resolveRealOpenablePath(requested, workspaceRoot, scratch ? [scratch] : []);
+      }
+      return result;
     },
   );
+
+  handleWithEvent(IPC.invoke.fsSaveSpreadsheet, async (event, input: { path?: unknown; revision?: unknown; patches?: unknown; sessionId?: unknown } = {}) => {
+    assertMainWindowSender(event);
+    if (typeof input.path !== "string" || typeof input.revision !== "string" || (input.sessionId !== undefined && typeof input.sessionId !== "string")) throw new Error("Invalid spreadsheet save request");
+    const sessionId = input.sessionId as string | undefined;
+    if (await remoteFileWorkspace(sessionId)) throw new Error("Remote spreadsheets are read-only");
+    const root = await requireWorkspaceRoot(sessionId);
+    const scratch = await sessionScratchRoot(sessionId);
+    return saveSpreadsheet(root, input.path, input.revision, input.patches, scratch ? [scratch] : []);
+  });
 
   handle(
     IPC.invoke.fsReadImageDataUrl,

@@ -1,12 +1,14 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { lazy, Suspense, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import type {
   OfficeParagraph,
   OfficePreview as OfficePreviewData,
   OfficeTextRun,
 } from "@pi-desktop/shared";
-import { Button, cx } from "../ui";
 import { WordDocumentPreview } from "./WordDocumentPreview";
+import type { SpreadsheetEditor } from "./SpreadsheetPreview";
+
+const SpreadsheetPreview = lazy(() => import("./SpreadsheetPreview").then(module => ({ default: module.SpreadsheetPreview })));
 
 function runContent(run: OfficeTextRun, index: number) {
   let content: React.ReactNode = run.text;
@@ -23,63 +25,6 @@ function Paragraph({ paragraph }: { paragraph: OfficeParagraph }) {
   }
   const Heading = style === "title" ? "h1" : style === "heading1" ? "h2" : style === "heading2" ? "h3" : "h4";
   return <Heading className={`office-preview-${style}`}>{paragraph.runs.map(runContent)}</Heading>;
-}
-
-function SpreadsheetPreview({
-  data,
-}: {
-  data: Extract<OfficePreviewData, { format: "spreadsheet" }>;
-}) {
-  const { t } = useTranslation();
-  const [active, setActive] = useState(0);
-  useEffect(() => {
-    setActive((current) => Math.min(current, Math.max(0, data.sheets.length - 1)));
-  }, [data.sheets.length]);
-  const sheet = data.sheets[active];
-  const columns = Math.max(0, ...(sheet?.rows.map(row => row.length) ?? []));
-  const columnName = (index: number): string => index < 26 ? String.fromCharCode(65 + index) : columnName(Math.floor(index / 26) - 1) + columnName(index % 26);
-  if (!sheet) return <div className="office-preview-empty">—</div>;
-
-  return (
-    <div className="office-sheet-preview">
-      <div className="office-sheet-tabs" role="tablist">
-        {data.sheets.map((item, index) => (
-          <Button
-            key={`${item.name}:${index}`}
-            type="button"
-            role="tab"
-            size="sm"
-            variant="ghost"
-            aria-selected={index === active}
-            className={cx("office-sheet-tab", index === active && "selected")}
-            onClick={() => setActive(index)}
-          >
-            {item.name}
-          </Button>
-        ))}
-      </div>
-      <div className="office-sheet-scroll">
-        <table className="office-sheet-table">
-          <thead><tr><th />{Array.from({ length: columns }, (_, index) => <th scope="col" key={index}>{columnName(index)}</th>)}</tr></thead>
-          <tbody>
-            {sheet.rows.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                <th scope="row">{rowIndex + 1}</th>
-                {Array.from({ length: columns }, (_, columnIndex) => (
-                  <td key={columnIndex}>{row[columnIndex] ?? ""}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {(sheet.truncated || data.truncated) && (
-        <div className="office-preview-cap" aria-label={t("panel.files.previewTruncated")}>
-          …
-        </div>
-      )}
-    </div>
-  );
 }
 
 function PresentationPreview({
@@ -130,7 +75,7 @@ function PresentationPreview({
   );
 }
 
-export function OfficePreview({ preview }: { preview: OfficePreviewData }) {
+export function OfficePreview({ preview, spreadsheetEditor }: { preview: OfficePreviewData; spreadsheetEditor?: SpreadsheetEditor }) {
   const { t } = useTranslation();
   if (preview.format === "word") {
     return (
@@ -162,6 +107,10 @@ export function OfficePreview({ preview }: { preview: OfficePreviewData }) {
       </article></WordDocumentPreview>
     );
   }
-  if (preview.format === "spreadsheet") return <SpreadsheetPreview data={preview} />;
+  if (preview.format === "spreadsheet") return (
+    <Suspense fallback={<div className="office-preview-cap" role="status">{t("common.loading")}</div>}>
+      <SpreadsheetPreview key={spreadsheetEditor?.identity ?? preview.revision ?? "readonly"} data={preview} editor={spreadsheetEditor} />
+    </Suspense>
+  );
   return <PresentationPreview data={preview} />;
 }

@@ -174,14 +174,17 @@ export function FilesTab() {
   const viewerBodyRef = useRef<HTMLDivElement>(null);
   const fileGeneration = useRef(0);
 
-  // Workspace switches reset all browsing state. Guarded so it only fires on
-  // an actual root change: an unconditional [root] effect also runs on the
+  // Scope switches reset browsing state. Guarded so it only fires on
+  // an actual scope change: an unconditional effect also runs on the
   // StrictMode remount, wiping the selection a chat file request just made
   // (first click landed on the tree instead of the file).
   const prevRoot = useRef(root);
+  const prevSession = useRef(sessionId);
   useEffect(() => {
-    if (prevRoot.current === root) return;
+    if (prevRoot.current === root && prevSession.current === sessionId) return;
     prevRoot.current = root;
+    prevSession.current = sessionId;
+    fileGeneration.current++;
     setDirs({});
     setExpanded(new Set());
     setSelected(null);
@@ -189,7 +192,7 @@ export function FilesTab() {
     setSelectedLine(undefined);
     setFile(null);
     setFileError(false);
-  }, [root]);
+  }, [root, sessionId]);
 
   const loadDir = useCallback(
     async (rel: string) => {
@@ -409,7 +412,10 @@ export function FilesTab() {
               <img src={file.dataUrl} alt={selected} />
             </div>
           ) : file.kind === "office" && file.office ? (
-            <OfficePreview preview={file.office} />
+            <OfficePreview preview={file.office} spreadsheetEditor={!remote ? {
+              identity: JSON.stringify([root, sessionId, selected]),
+              save: (revision, patches) => api.fsSaveSpreadsheet(selected, revision, patches, sessionId),
+            } : undefined} />
           ) : (
             <WorkTabEmpty
               icon={IconFileText}

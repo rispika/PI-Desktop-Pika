@@ -4,6 +4,7 @@ export const enEntries: ChangelogEntry[] = [
   {
     version: "0.23.0",
     highlights: [
+      "Switch between Read only and Edit for eligible local Excel workbooks, change cell values, and save to the original XLSX file.",
       "Turn on OpenAI Fast mode per model and use /fast in a conversation to request priority service; it may use subscription limits faster or cost more per token.",
       "Inline visualizations load faster with reusable chart helpers, and failed scripts now show actionable errors instead of blank cards.",
       "Test MCP servers from the selected project folder; after a successful test, project sessions can recover idle failed connections.",

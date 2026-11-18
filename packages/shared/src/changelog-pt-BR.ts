@@ -4,6 +4,7 @@ export const ptBREntries: ChangelogEntry[] = [
   {
     version: "0.23.0",
     highlights: [
+      "Alterne entre somente leitura e edição em pastas de trabalho locais do Excel compatíveis, altere valores das células e salve no arquivo XLSX original.",
       "Ative o OpenAI Fast por modelo e use /fast na conversa para solicitar prioridade; isso pode consumir os limites da assinatura mais rápido ou aumentar o custo por token.",
       "Visualizações inline carregam mais rápido com auxiliares de gráfico reutilizáveis; scripts com falha agora mostram erros úteis em vez de cartões vazios.",
       "Teste servidores MCP na pasta do projeto selecionado; após um teste bem-sucedido, sessões do projeto podem recuperar conexões inativas com falha.",

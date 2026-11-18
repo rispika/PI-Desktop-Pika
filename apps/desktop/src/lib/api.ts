@@ -1740,6 +1740,8 @@ export const api = {
       ...(mimeType ? { mimeType } : {}),
       ...(sessionId ? { sessionId } : {}),
     }),
+  fsSaveSpreadsheet: (path: string, revision: string, patches: import("@pi-desktop/shared").SpreadsheetCellPatch[], sessionId?: string) =>
+    invoke<Extract<import("@pi-desktop/shared").OfficePreview, { format: "spreadsheet" }>>(IPC.invoke.fsSaveSpreadsheet, { path, revision, patches, ...(sessionId ? { sessionId } : {}) }),
   fsReadImageDataUrl: (ref: string, mimeType?: string, sessionId?: string) =>
     invoke<FsImageDataUrlResult>(IPC.invoke.fsReadImageDataUrl, {
       ref,

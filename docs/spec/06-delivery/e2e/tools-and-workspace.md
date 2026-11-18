@@ -853,11 +853,22 @@ journeys cover successful reads, saves and directory browsing.
   network-blocked iframe for local page layout, headers, tables, and images;
   unavailable or oversized layout payloads retain the text/table fallback.
   Excel retains blank rows, text leading zeros, and cached numeric/date/percent
-  formatting, with column labels and sheet switching (no formula execution).
+  formatting, row/column dimensions and bounded merged regions, with a
+  FortuneSheet grid and sheet switching (no formula execution). Eligible
+  local XLSX files default to Read only and offer Edit. Double-click a cell,
+  change text/number/boolean values, switch to Read only before pressing
+  Enter, and verify the committed draft remains. Switch files and return;
+  verify the draft remains, then save and reopen the file to verify values.
+  Verify discard confirmation, preservation of original formula/style and
+  chart/image parts, protected/truncated/remote/external files remaining
+  read-only, and an external write producing a conflict without overwriting
+  the newer file or losing the draft. Switching files during a pending save
+  must not enable duplicate saves or discard later edits. Formula editing,
+  formatting changes and sheet structure changes are unavailable.
   PowerPoint preserves explicit text/image positions, run sizes/colors, and
   solid backgrounds where all content has supported coordinates; otherwise it
   uses the complete sequential preview. Theme/layout inheritance, charts,
-  SmartArt, animations, merged Excel cells, and exact Office pagination/font
+  SmartArt, animations, and exact Office pagination/font
   fidelity are not guaranteed. Verify a document switch during Word rendering
   cannot publish stale output, malformed packages keep fallback available, and
   external links, macros, OLE, and HTML chunks cannot execute. Office archives are parsed
@@ -871,7 +882,8 @@ journeys cover successful reads, saves and directory browsing.
 - **Acceptance**: D (workspace), Security
 - **Milestone**: M5
 - **Status**: Unit-covered (`fs-panel-guard.test.mjs`,
-  `office-preview.test.ts`); isolated renderer interactions covered by
+  `office-preview.test.ts`, `spreadsheet-edit.test.ts`,
+  `spreadsheet-model.test.mjs`); isolated renderer interactions covered by
   `office-preview-renderer.test.mjs` at desktop and narrow widths. Plugin
   Office-to-binary compatibility is covered by `plugin-fs-scope.test.mjs` and
   `apps/pi-host/src/plugin-workspace-files.test.ts`; full UI scenario Draft

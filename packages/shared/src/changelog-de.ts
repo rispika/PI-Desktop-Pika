@@ -4,6 +4,7 @@ export const deEntries: ChangelogEntry[] = [
   {
     version: "0.23.0",
     highlights: [
+      "Unterstützte lokale Excel-Arbeitsmappen lassen sich schreibgeschützt öffnen oder bearbeiten. Änderungen an Zellwerten können in der ursprünglichen XLSX-Datei gespeichert werden.",
       "Aktiviere OpenAI Fast pro Modell und nutze /fast im Gespräch für bevorzugte Verarbeitung; dadurch können Abo-Limits schneller sinken oder die Kosten pro Token steigen.",
       "Inline-Visualisierungen laden mit wiederverwendbaren Diagrammhelfern schneller; fehlgeschlagene Skripte zeigen jetzt hilfreiche Fehler statt leerer Karten.",
       "Teste MCP-Server im Ordner des ausgewählten Projekts; nach einem erfolgreichen Test können Projektsitzungen inaktive fehlgeschlagene Verbindungen wiederherstellen.",

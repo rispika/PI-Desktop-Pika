@@ -42,7 +42,7 @@ export function parseSpreadsheet(zip: JSZip, workbookXml: string, workbookPath: 
       const name = nodeAttr(sheetNode, "name") ?? String(sheets.length + 1);
       const relationshipId = nodeAttr(sheetNode, "r:id");
       const target = relationshipId ? relationships.get(relationshipId) : undefined;
-      if (!target) continue;
+      if (!target) { truncated = true; continue; }
       const sheetPath = resolvePartPath(workbookPath, target);
       const sheetXml = await readArchiveText(zip, sheetPath);
       if (!sheetXml) {
@@ -51,6 +51,16 @@ export function parseSpreadsheet(zip: JSZip, workbookXml: string, workbookPath: 
       }
       const sheetRoot = parseXml(sheetXml);
       const outputRows: string[][] = [];
+      const cells: NonNullable<OfficeSheet["cells"]> = [];
+      const columnWidths: Record<number, number> = {};
+      const rowHeights: Record<number, number> = {};
+      for (const col of descendants(sheetRoot, "col")) {
+        const start = Number(nodeAttr(col, "min")), end = Math.min(MAX_SHEET_COLUMNS, Number(nodeAttr(col, "max")));
+        const width = Number(nodeAttr(col, "width"));
+        if (Number.isInteger(start) && start > 0 && Number.isFinite(width) && width > 0) {
+          for (let i = start; i <= end; i++) columnWidths[i - 1] = Math.min(1000, Math.max(24, width * 7 + 5));
+        }
+      }
       let sheetTruncated = false;
       for (const rowNode of descendants(sheetRoot, "row")) {
         if (outputRows.length >= MAX_SHEET_ROWS) {
@@ -61,6 +71,8 @@ export function parseSpreadsheet(zip: JSZip, workbookXml: string, workbookPath: 
         const rowIndex = Number.isInteger(declaredRow) && declaredRow > 0 ? declaredRow - 1 : outputRows.length;
         if (rowIndex >= MAX_SHEET_ROWS) { sheetTruncated = true; break; }
         while (outputRows.length < rowIndex) outputRows.push([]);
+        const height = Number(nodeAttr(rowNode, "ht"));
+        if (Number.isFinite(height) && height > 0) rowHeights[rowIndex] = Math.min(600, height * 4 / 3);
         const values: string[] = [];
         let fallbackColumn = 0;
         for (const cellNode of directChildren(nodeChildren(rowNode), "c")) {
@@ -84,6 +96,9 @@ export function parseSpreadsheet(zip: JSZip, workbookXml: string, workbookPath: 
             const formula = firstDescendant(nodeChildren(cellNode), "f");
             value = formula ? `=${textContent(nodeChildren(formula))}` : "";
           }
+          const formula = firstDescendant(nodeChildren(cellNode), "f");
+          const raw: string | number | boolean = type === "b" ? rawValue === "1" : ((!type || type === "n") && rawValue && Number.isFinite(Number(rawValue))) ? Number(rawValue) : value;
+          cells.push({ row: rowIndex, column: index, value: typeof raw === "string" ? raw.slice(0, 4000) : raw, ...(formula ? { formula: textContent(nodeChildren(formula)) || " " } : {}) });
           if ((!type || type === "n") && rawValue && Number.isFinite(Number(rawValue))) {
             const formatId = cellFormats[Number(nodeAttr(cellNode, "s")) || 0] ?? 0;
             const code = customFormats.get(formatId) ?? SSF.get_table()[formatId] ?? "General";
@@ -97,7 +112,17 @@ export function parseSpreadsheet(zip: JSZip, workbookXml: string, workbookPath: 
         while (values.length > 0 && values[values.length - 1] === "") values.pop();
         outputRows.push(values);
       }
-      sheets.push({ name, rows: outputRows, truncated: sheetTruncated });
+      const merges: NonNullable<OfficeSheet["merges"]> = [];
+      for (const merge of descendants(sheetRoot, "mergeCell")) {
+        const ref = nodeAttr(merge, "ref")?.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/);
+        if (!ref) { sheetTruncated = true; continue; }
+        const row = Number(ref[2]) - 1, column = columnIndex(ref[1], 0);
+        const endRow = Number(ref[4]), endColumn = columnIndex(ref[3], 0) + 1;
+        if (row >= 0 && endRow > row && endRow <= MAX_SHEET_ROWS && column >= 0 && endColumn > column && endColumn <= MAX_SHEET_COLUMNS) merges.push({ row, column, rows: endRow - row, columns: endColumn - column });
+        else sheetTruncated = true;
+      }
+      const protectedSheet = !!firstDescendant(sheetRoot, "sheetProtection") || descendants(sheetRoot, "f").some(formula => !!nodeAttr(formula, "ref") || ![undefined, "normal"].includes(nodeAttr(formula, "t")));
+      sheets.push({ name, rows: outputRows, cells, columnWidths, rowHeights, merges, protected: protectedSheet, hidden: ["hidden", "veryHidden"].includes(nodeAttr(sheetNode, "state") ?? ""), truncated: sheetTruncated });
       truncated ||= sheetTruncated;
     }
 

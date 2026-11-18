@@ -78,7 +78,7 @@ describe("Office previews", () => {
     const preview = await previewOfficeFile(buffer, "figures.xlsx");
     expect(preview?.format).toBe("spreadsheet");
     if (preview?.format !== "spreadsheet") return;
-    expect(preview.sheets).toEqual([
+    expect(preview.sheets.map(({ name, rows, truncated }) => ({ name, rows, truncated }))).toEqual([
       {
         name: "Summary",
         rows: [

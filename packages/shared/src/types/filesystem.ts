@@ -28,7 +28,20 @@ export type OfficeWordBlock =
 export type OfficeSheet = {
   name: string;
   rows: string[][];
+  cells?: Array<{ row: number; column: number; value: string | number | boolean; formula?: string }>;
+  columnWidths?: Record<number, number>;
+  rowHeights?: Record<number, number>;
+  merges?: Array<{ row: number; column: number; rows: number; columns: number }>;
+  protected?: boolean;
+  hidden?: boolean;
   truncated: boolean;
+};
+
+export type SpreadsheetCellPatch = {
+  sheet: number;
+  row: number;
+  column: number;
+  value: string | number | boolean | null;
 };
 
 export type OfficeSlide = {
@@ -47,7 +60,7 @@ export type OfficeSlide = {
 
 export type OfficePreview =
   | { format: "word"; blocks: OfficeWordBlock[]; packageBase64?: string; truncated: boolean }
-  | { format: "spreadsheet"; sheets: OfficeSheet[]; truncated: boolean }
+  | { format: "spreadsheet"; sheets: OfficeSheet[]; truncated: boolean; revision?: string; editable?: boolean }
   | {
       format: "presentation";
       slides: OfficeSlide[];

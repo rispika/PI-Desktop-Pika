@@ -2390,6 +2390,14 @@ sklm: {
       "binary": "Binärdatei – Vorschau nicht verfügbar",
       "tooLarge": "Datei ist zu groß für die Vorschau",
       "previewTruncated": "Vorschau gekürzt",
+      sheet: {
+        mode: "Tabellenmodus", read: "Schreibgeschützt", edit: "Bearbeiten", save: "Speichern", discard: "Änderungen verwerfen",
+        discardConfirm: "Ungespeicherte Tabellenänderungen verwerfen?", saving: "Wird gespeichert…", unsaved: "Ungespeicherte Änderungen",
+        valuesOnly: "Nur Zelltexte, Zahlen und Wahrheitswerte sind bearbeitbar. Formeln, Formatierung und Tabellenstruktur bleiben erhalten.",
+        conflict: "Die Datei wurde extern geändert. Der Entwurf bleibt erhalten. Öffnen Sie die Datei erneut und prüfen Sie die aktuelle Version.",
+        saveFailed: "Speichern fehlgeschlagen. Der Entwurf bleibt erhalten. Prüfen Sie Dateirechte und Excel-Dateisperren.",
+        cachedFormulas: "Formelergebnisse werden beim erneuten Öffnen in Excel aktualisiert.",
+      },
       "openFailed": "Die Datei konnte nicht mit der Standardanwendung geöffnet werden."
     }
   },

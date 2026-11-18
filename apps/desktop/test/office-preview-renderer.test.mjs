@@ -31,16 +31,57 @@ const waitFor = async (predicate, label) => {
   }
 };
 const show = (preview) => flushSync(() => root.render(<OfficePreview preview={preview} />));
+window.editProbe = async (data) => {
+  let saved = null;
+  let fail = true;
+  let release;
+  const editor = { identity: "test-workbook", save: async (revision, patches) => {
+    if (fail) throw new Error("SPREADSHEET_CONFLICT");
+    await new Promise(resolve => { release = resolve; });
+    saved = { revision, patches };
+    return window.spreadsheetTest.save(revision, patches);
+  } };
+  const render = () => flushSync(() => root.render(<OfficePreview preview={data} spreadsheetEditor={editor} />));
+  const button = key => document.querySelector('[aria-label="panel.files.sheet.' + key + '"]');
+  render();
+  await waitFor(() => document.querySelector(".fortune-sheet-canvas"), "Editable grid missing");
+  check(button("save").disabled, "Clean workbook can save");
+  flushSync(() => [...document.querySelectorAll('button')].find(b => b.textContent === 'panel.files.sheet.edit').click());
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const overlay = document.querySelector('.fortune-cell-area');
+  check(overlay, "Cell overlay missing");
+  const rect = overlay.getBoundingClientRect();
+  window.expectCellInput = () => waitFor(() => document.activeElement?.id === 'luckysheet-rich-text-editor', "Cell editor not focused");
+  window.finishEditProbe = async () => {
+    await waitFor(() => document.querySelector('.office-spreadsheet-status')?.textContent === 'panel.files.sheet.unsaved' || document.querySelector('.office-spreadsheet-error'), "Input did not create draft");
+    check(!document.querySelector('.office-spreadsheet-error'), "Editing rejected: " + document.querySelector('.office-spreadsheet-error')?.textContent);
+    check(!button('save').disabled, "Read mode lost draft");
+    show({format:'presentation',slides:[],truncated:false});
+    render();
+    check(!button('save').disabled, "File switch lost draft");
+    button('save').click();
+    await waitFor(() => document.querySelector('.office-spreadsheet-error'), "Save failure not shown");
+    check(document.querySelector('.office-spreadsheet-error').textContent === 'panel.files.sheet.conflict', "Conflict not explained");
+    check(!button('save').disabled, "Failed save lost draft");
+    fail = false;
+    button('save').click();
+    await waitFor(() => release, "Save not started");
+    show({format:'presentation',slides:[],truncated:false});
+    render();
+    check(button('save').disabled, "Pending save allowed duplicate writes after remount");
+    release();
+    await waitFor(() => saved && button('save').disabled && !document.querySelector('.office-spreadsheet-status').textContent, "Save did not finish");
+    check(saved.patches.some(p => p.value === 'Edited value'), "Wrong value saved: " + JSON.stringify(saved));
+  };
+  return { x:rect.left+40,y:rect.top+10 };
+};
 window.officeProbe = async (data) => {
   show(data.sheet);
-  check(document.querySelectorAll("thead th").length === 3, "Column labels missing");
-  check(document.querySelectorAll("tbody tr").length === 3, "Blank rows collapsed");
-  check(document.querySelectorAll("tbody td").length === 6, "Blank cells missing");
-  check(document.querySelector("tbody").textContent.includes("12.50%"), "Number format missing");
-  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  await waitFor(() => document.querySelector(".fortune-sheet-canvas"), "Spreadsheet canvas missing");
+  const tabs = [...document.querySelectorAll('.luckysheet-sheets-item')];
   flushSync(() => tabs[1].click());
-  check(tabs[1].getAttribute("aria-selected") === "true", "Sheet selection missing");
-  check(document.querySelector("tbody").textContent.includes("Second sheet"), "Sheet switch failed");
+  check(document.querySelector('.luckysheet-sheets-item-active').textContent.includes("Detail"), "Sheet switch failed");
+  check(document.querySelector(".fortune-sheet-canvas").width > 100, "Spreadsheet canvas is blank");
   show(data.word);
   await waitFor(() => !document.querySelector(".office-word-layout").hidden, "Word layout never became visible");
   const frame = document.querySelector("iframe");
@@ -93,13 +134,15 @@ test("Office previews render pages, switch sheets, preserve slide positions, and
       "word/_rels/document.xml.rels": '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="styles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
       "word/styles.xml": '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr/></w:rPrDefault><w:pPrDefault><w:pPr/></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>',
     }), "report.docx");
-    const sheet = await previewOfficeFile(await archive({
+    const spreadsheetBytes = await archive({
       "xl/workbook.xml": '<workbook xmlns:r="urn:r"><sheets><sheet name="Summary" r:id="one"/><sheet name="Detail" r:id="two"/></sheets></workbook>',
       "xl/_rels/workbook.xml.rels": '<Relationships><Relationship Id="one" Target="worksheets/one.xml"/><Relationship Id="two" Target="worksheets/two.xml"/></Relationships>',
       "xl/styles.xml": '<styleSheet><cellXfs><xf numFmtId="10"/></cellXfs></styleSheet>',
       "xl/worksheets/one.xml": '<worksheet><sheetData><row r="3"><c r="A3" t="inlineStr"><is><t>00123</t></is></c><c r="B3"><v>0.125</v></c></row></sheetData></worksheet>',
       "xl/worksheets/two.xml": '<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Second sheet</t></is></c></row></sheetData></worksheet>',
-    }), "book.xlsx");
+    });
+    await writeFile(join(temp, "book.xlsx"), spreadsheetBytes);
+    const sheet = await previewOfficeFile(spreadsheetBytes, "book.xlsx");
     const slide = await previewOfficeFile(await archive({
       "ppt/presentation.xml": '<p:presentation xmlns:p="urn:p" xmlns:r="urn:r"><p:sldSz cx="9144000" cy="5143500"/><p:sldIdLst><p:sldId r:id="one"/></p:sldIdLst></p:presentation>',
       "ppt/_rels/presentation.xml.rels": '<Relationships><Relationship Id="one" Target="slides/one.xml"/></Relationships>',
@@ -112,22 +155,45 @@ test("Office previews render pages, switch sheets, preserve slide positions, and
       alias: Object.fromEntries(["react", "react-dom", "react-i18next", "i18next"].map(name => [name, join(root, "apps/desktop/node_modules", name)])),
       write: false,
     });
-    await writeFile(join(temp, "renderer.js"), rendererBundle.outputFiles[0].contents);
+    for (const output of rendererBundle.outputFiles) await writeFile(output.path, output.contents);
     const css = await readFile(join(root, "apps/desktop/src/styles/work-panel.css"), "utf8");
-    await writeFile(join(temp, "index.html"), '<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;--ds-bg-dock:#fff;--ds-text-primary:#222;--ds-border-subtle:#ccc}' + css + '</style></head><body><div id="root"></div><script type="module" src="renderer.js"></script></body></html>');
+    await writeFile(join(temp, "index.html"), '<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="renderer.css"><style>body{margin:0;--ds-bg-dock:#fff;--ds-text-primary:#222;--ds-border-subtle:#ccc}#root{height:750px}' + css + '</style></head><body><div id="root"></div><script type="module" src="renderer.js"></script></body></html>');
     await writeFile(join(temp, "data.json"), JSON.stringify({ word, sheet, slide }));
+    const saveBundle = await build({ entryPoints: [join(root, "packages/host-runtime/src/spreadsheet-edit.ts")], bundle: true, platform: "node", format: "cjs", write: false });
+    await writeFile(join(temp, "save.cjs"), saveBundle.outputFiles[0].contents);
+    await writeFile(join(temp, "preload.cjs"), `
+const { contextBridge, ipcRenderer } = require("electron");
+contextBridge.exposeInMainWorld("spreadsheetTest", { save: (revision, patches) => ipcRenderer.invoke("test:saveSpreadsheet", revision, patches) });
+`);
     await writeFile(join(temp, "main.cjs"), `
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const fs = require("node:fs"), path = require("node:path");
+const { saveSpreadsheet } = require("./save.cjs");
+ipcMain.handle("test:saveSpreadsheet", (_, revision, patches) => saveSpreadsheet(__dirname, "book.xlsx", revision, patches));
 app.setPath("userData", path.join(__dirname, "profile"));
 app.whenReady().then(async () => {
-  const win = new BrowserWindow({show:false,width:1100,height:800,webPreferences:{sandbox:true,contextIsolation:true,nodeIntegration:false,backgroundThrottling:false}});
+  const win = new BrowserWindow({show:false,width:1100,height:800,webPreferences:{sandbox:true,contextIsolation:true,nodeIntegration:false,backgroundThrottling:false,preload:path.join(__dirname,"preload.cjs")}});
   win.webContents.on("console-message", event => console.error(event.message));
   try {
     await win.loadFile(path.join(__dirname,"index.html"));
     const data = fs.readFileSync(path.join(__dirname,"data.json"),"utf8");
     const desktop = await win.webContents.executeJavaScript("window.officeProbe("+data+")");
     fs.writeFileSync(path.join(__dirname,"desktop.png"),(await win.webContents.capturePage()).toPNG());
+    const point = await win.webContents.executeJavaScript("window.editProbe(JSON.parse("+JSON.stringify(data)+").sheet)");
+    win.webContents.focus();
+    win.webContents.sendInputEvent({type:"mouseDown",x:Math.round(point.x),y:Math.round(point.y),button:"left",clickCount:1});
+    win.webContents.sendInputEvent({type:"mouseUp",x:Math.round(point.x),y:Math.round(point.y),button:"left",clickCount:1});
+    await win.webContents.executeJavaScript("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))");
+    win.webContents.sendInputEvent({type:"mouseDown",x:Math.round(point.x),y:Math.round(point.y),button:"left",clickCount:2});
+    win.webContents.sendInputEvent({type:"mouseUp",x:Math.round(point.x),y:Math.round(point.y),button:"left",clickCount:2});
+    await win.webContents.executeJavaScript("window.expectCellInput()");
+    win.webContents.sendInputEvent({type:"keyDown",keyCode:"A",modifiers:["control"]});
+    win.webContents.sendInputEvent({type:"keyUp",keyCode:"A",modifiers:["control"]});
+    await win.webContents.insertText("Edited value");
+    const readPoint = await win.webContents.executeJavaScript("(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent==='panel.files.sheet.read').getBoundingClientRect();return {x:Math.round(b.x+b.width/2),y:Math.round(b.y+b.height/2)}})()");
+    win.webContents.sendInputEvent({type:"mouseDown",...readPoint,button:"left",clickCount:1});
+    win.webContents.sendInputEvent({type:"mouseUp",...readPoint,button:"left",clickCount:1});
+    await win.webContents.executeJavaScript("window.finishEditProbe()");
     win.setSize(420,800);
     const narrow = await win.webContents.executeJavaScript("window.officeProbe("+data+")");
     fs.writeFileSync(path.join(__dirname,"narrow.png"),(await win.webContents.capturePage()).toPNG());
@@ -146,6 +212,8 @@ app.whenReady().then(async () => {
     try { code = await new Promise((resolve, reject) => { child.once("error", reject); child.once("close", resolve); }); }
     finally { clearTimeout(timer); }
     assert.equal(code, 0, output);
+    const reopened = await previewOfficeFile(await readFile(join(temp, "book.xlsx")), "book.xlsx");
+    assert.equal(reopened.sheets[0].rows[0][0], "Edited value");
     assert.match(output, /OFFICE_RENDERER /);
     assert.match(output, /violates the following Content Security Policy directive: "default-src 'none'"/);
   } finally {

@@ -16,12 +16,12 @@ test("the Files panel routes parsed Office documents to the Office renderer", as
 test("the Office renderer exposes document, spreadsheet, and slide previews", async () => {
   const component = await read("../src/components/workpanel/OfficePreview.tsx");
   const styles = await read("../src/styles/work-panel.css");
+  const spreadsheet = await read("../src/components/workpanel/SpreadsheetPreview.tsx");
   assert.match(component, /className="office-word-table"/);
-  assert.match(component, /className="office-sheet-table"/);
   assert.match(component, /className="office-slide-canvas"/);
-  assert.match(component, /role="tablist"/);
-  assert.match(component, /aria-selected=\{index === active\}/);
+  assert.match(spreadsheet, /<Workbook/);
+  assert.match(spreadsheet, /<SegmentedControl/);
   assert.match(styles, /\.office-word-preview/);
-  assert.match(styles, /\.office-sheet-table/);
+  assert.match(styles, /\.office-spreadsheet-grid/);
   assert.match(styles, /\.office-slide-canvas/);
 });

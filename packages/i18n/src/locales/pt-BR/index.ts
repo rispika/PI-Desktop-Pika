@@ -2356,6 +2356,14 @@ export const ptBR = {
       binary: "Arquivo binário — pré-visualização indisponível",
       tooLarge: "O arquivo é grande demais para pré-visualização",
       previewTruncated: "Pré-visualização truncada",
+      sheet: {
+        mode: "Modo da planilha", read: "Somente leitura", edit: "Editar", save: "Salvar", discard: "Descartar alterações",
+        discardConfirm: "Descartar as alterações não salvas?", saving: "Salvando…", unsaved: "Alterações não salvas",
+        valuesOnly: "Somente textos, números e booleanos podem ser editados. Fórmulas, formatação e estrutura são preservadas.",
+        conflict: "O arquivo foi alterado externamente. O rascunho foi mantido. Reabra o arquivo para revisar a versão atual.",
+        saveFailed: "Não foi possível salvar. O rascunho foi mantido. Verifique as permissões e os bloqueios do Excel.",
+        cachedFormulas: "Os resultados das fórmulas serão atualizados ao reabrir o arquivo no Excel.",
+      },
       openFailed: "Não foi possível abrir o arquivo com o aplicativo padrão."
     }
   },

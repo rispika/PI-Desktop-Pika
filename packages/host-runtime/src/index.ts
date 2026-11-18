@@ -12,6 +12,7 @@ export * from "./runtime-service.js";
 export * from "./plan-dispatch.js";
 export * from "./workspace-files.js";
 export * from "./office-preview.js";
+export * from "./spreadsheet-edit.js";
 export * from "./external-files.js";
 export * from "./workspace-diff.js";
 export * from "./live-work/operation-ledger.js";

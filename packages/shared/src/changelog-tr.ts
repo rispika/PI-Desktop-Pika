@@ -4,6 +4,7 @@ export const trEntries: ChangelogEntry[] = [
   {
     version: "0.23.0",
     highlights: [
+      "Desteklenen yerel Excel çalışma kitaplarında salt okunur ve düzenleme modları arasında geçiş yapın, hücre değerlerini değiştirin ve özgün XLSX dosyasına kaydedin.",
       "OpenAI Fast modunu model başına açın ve öncelikli hizmet istemek için konuşmada /fast kullanın; bu, abonelik limitlerini daha hızlı tüketebilir veya token başına maliyeti artırabilir.",
       "Satır içi görselleştirmeler yeniden kullanılabilir grafik yardımcılarıyla daha hızlı yüklenir; başarısız betikler artık boş kartlar yerine düzeltmeye yardımcı olacak hatalar gösterir.",
       "MCP sunucularını seçili projenin klasöründe test edin; başarılı bir testten sonra proje oturumları boşta kalan başarısız bağlantıları kurtarabilir.",
