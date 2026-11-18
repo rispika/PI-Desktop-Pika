@@ -1692,8 +1692,12 @@ journeys cover successful reads, saves and directory browsing.
   host-mediated actions obey the declared `fs.read` scope, and its own reads and
   writes stay inside the jail of the one project folder it is browsing
   (ADR 0241, ADR 0263). Plain project-file links open in the bundled view,
-  bringing it up on demand after a direct click when its scope and permission
-  allow it; a positioned `path:line` reference opens the host file tab and
+  except PDFs and supported Office documents, which use their preview surfaces.
+  In a standalone local session with no project selected, click absolute links
+  to local PDF, DOCX, XLSX, and PPTX fixtures. The PDF opens in the side browser
+  and the Office files open in the host file tab.
+  A direct click opens the bundled view on demand when its scope and permission
+  allow it. A positioned `path:line` reference opens the host file tab and
   scrolls the requested line even while the plugin view is available.
 - **Specs linked**: `07-plugins/03-plugin-api.md` §3,
   `07-plugins/13-plugin-permissions-matrix.md` §2,

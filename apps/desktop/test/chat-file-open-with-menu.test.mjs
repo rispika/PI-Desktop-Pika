@@ -267,6 +267,62 @@ test("the File Manager opens the resolved project or scratch path", async () => 
   assert.equal(calls.tabs[0].location, "C:/data/scratch/session-1/page.html");
 });
 
+test("local document previews open from chat without an active project", async () => {
+  const workspace = state.workspace;
+  state.workspace = null;
+  try {
+    for (const extension of ["pdf", "docx", "xlsx", "pptx", "txt"]) {
+      const path = `C:/project/sample.${extension}`;
+      reset(projectMatch({ relativePath: `sample.${extension}`, absolutePath: path }));
+      await openWithDestination(path, undefined);
+      assert.deepEqual(calls.tabs, []);
+      assert.deepEqual(calls.toasts, []);
+      if (extension === "pdf") {
+        assert.deepEqual(calls.urls, [[path]]);
+      } else {
+        assert.deepEqual(calls.files, [[path, undefined, { line: undefined, column: undefined }]]);
+      }
+    }
+  } finally {
+    state.workspace = workspace;
+  }
+});
+
+test("chat previews an exact project-external PDF and opens a project spreadsheet in the host file tab", async () => {
+  const pdf = "C:/downloads/sample.pdf";
+  reset({ root: "external", absolutePath: pdf, relativePath: "sample.pdf", matchedBy: "exact-absolute" });
+  await openWithDestination(pdf, undefined);
+  assert.deepEqual(calls.urls, [[pdf]]);
+  assert.deepEqual(calls.tabs, []);
+
+  reset(projectMatch({ absolutePath: "C:/project/sample.xlsx", relativePath: "sample.xlsx" }));
+  await openWithDestination("sample.xlsx", undefined);
+  assert.deepEqual(calls.files, [["sample.xlsx", undefined, { line: undefined, column: undefined }]]);
+  assert.deepEqual(calls.tabs, []);
+
+  reset(projectMatch());
+  await openWithDestination("src/dir/a.ts", undefined);
+  assert.equal(calls.tabs[0].location, "src/dir/a.ts");
+});
+
+test("a local PDF opens in its system handler when the browser view is unavailable", async () => {
+  const views = state.pluginViews;
+  const workspace = state.workspace;
+  state.pluginViews = [];
+  state.workspace = null;
+  try {
+    const path = "C:/downloads/sample.pdf";
+    reset({ root: "external", absolutePath: path, matchedBy: "exact-absolute" });
+    await openWithDestination(path, undefined);
+    assert.deepEqual(calls.defaultBrowsers, [[path, undefined, "session-1"]]);
+    assert.deepEqual(calls.urls, []);
+    assert.deepEqual(calls.tabs, []);
+  } finally {
+    state.pluginViews = views;
+    state.workspace = workspace;
+  }
+});
+
 test("HTML can open in the embedded or default browser at its resolved address", async () => {
   reset(projectMatch({ relativePath: "page.html", absolutePath: "C:/project/page.html" }));
   await openWithDestination("page.html", "built-in-browser");

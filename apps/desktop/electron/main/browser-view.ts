@@ -492,6 +492,7 @@ export class BrowserPane {
         sandbox: true,
         contextIsolation: true,
         nodeIntegration: false,
+        plugins: true, // Enable Chromium’s built-in PDF viewer.
         backgroundThrottling: true,
         partition: PARTITION,
       },

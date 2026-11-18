@@ -227,7 +227,7 @@ function useResolveChatFileRef() {
       // absolute path and the file view switches to that folder (ADR 0263).
       const primary = match.projectRoot ? match.projectRoot.primary : true;
       return {
-        path: primary && !isolated ? match.relativePath : match.absolutePath,
+        path: workspacePath && primary && !isolated ? match.relativePath : match.absolutePath,
         absolutePath: match.absolutePath,
         relativePath: match.relativePath,
         inProject: true,
@@ -250,7 +250,8 @@ function useResolveChatFileRef() {
  * The plugin view accepts opaque path locations and has no line-navigation
  * contract, so positioned references keep their path unchanged and use the
  * host viewer's existing scroll support. Other scratch and attachment files
- * also use the host file tab.
+ * also use the host file tab. Office documents use the host viewer, and local
+ * PDFs use the embedded PDF viewer. Neither requires an active project.
  */
 export function useOpenChatFileRef() {
   const { t } = useTranslation();
@@ -377,7 +378,20 @@ export function useOpenChatFileRef() {
           openUrl(resolved.absolutePath);
           return;
         }
-        if (!current.workspace?.remote && resolved.inProject && !hasPosition) {
+        if (!current.workspace?.remote && !hasPosition && /\.pdf$/i.test(resolved.absolutePath)) {
+          if (hasPluginView(current.pluginViews, BROWSER_PLUGIN_TAB)) {
+            openUrl(resolved.absolutePath);
+          } else {
+            try {
+              await api.fsOpen(resolved.absolutePath, mimeType, sessionId);
+            } catch {
+              showToast(t("panel.files.openFailed"), { variant: "error" });
+            }
+          }
+          return;
+        }
+        const officePreview = /\.(?:docx|docm|xlsx|xlsm|pptx|pptm)$/i.test(resolved.absolutePath);
+        if (workspacePath && !current.workspace?.remote && resolved.inProject && !hasPosition && !officePreview) {
           if (await ensureFileManagerView(workspacePath)) {
             const latest = useAppStore.getState();
             if (

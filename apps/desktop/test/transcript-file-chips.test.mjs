@@ -54,7 +54,7 @@ test("a file chip is routed by where the reference resolved, never optimisticall
   assert.match(hook, /const isolated = Boolean\(session\?\.worktree\)/);
   assert.match(
     hook,
-    /path: primary && !isolated \? match\.relativePath : match\.absolutePath/,
+    /path: workspacePath && primary && !isolated \? match\.relativePath : match\.absolutePath/,
   );
   // Project and scratch HTML run at the exact path resolved by main.
   assert.match(hook, /resolved\.inProject \|\| resolved\.scratch/);

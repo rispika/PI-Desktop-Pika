@@ -3879,7 +3879,11 @@ Anatomy:
   folders primary first (ADR 0263) — and opens where it resolved: a project file
   in the bundled `pi.file-manager` view (the host `file:` tab when that view is
   unavailable), a session-scratch or attachment file in the host `file:` tab,
-  and a `.html`/`.htm` page of the primary folder in the side browser. A
+  and a `.html`/`.htm` page of the primary folder in the side browser. Local
+  PDFs open in the side browser, or in the system PDF handler if the browser
+  view is unavailable. Supported Office documents open in the host file tab.
+  A resolved local file can open without an active project, including an exact
+  absolute file path outside project folders. A
   positioned `path:line` reference uses the host read-only `file:` tab and
   scrolls the requested line into view. A
   primary-folder file is addressed to the view as a project-relative path and a
