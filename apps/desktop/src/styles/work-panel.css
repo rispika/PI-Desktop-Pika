@@ -932,6 +932,201 @@
   border-radius: var(--radius-sm);
 }
 
+.office-word-layout { flex: 1; min-height: 0; width: 100%; height: 100%; }
+.office-word-layout[hidden] { display: none; }
+.office-word-frame { display: block; width: 100%; height: 100%; min-height: 480px; border: 0; }
+.office-slide-canvas { container-type: inline-size; }
+.office-slide-element { position: absolute; overflow: hidden; box-sizing: border-box; }
+.office-slide-element img { width: 100%; height: 100%; object-fit: contain; }
+.office-slide-element .office-preview-paragraph { margin: 0; font-size: 2cqw; line-height: 1.2; }
+.office-sheet-table thead th { position: sticky; top: 0; left: auto; z-index: 2; }
+
+.office-word-preview,
+.office-sheet-preview,
+.office-slides-preview {
+  min-width: 0;
+  padding: 18px;
+  color: var(--ds-text-primary);
+}
+
+.office-word-preview {
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  background: var(--ds-bg-dock);
+}
+
+.office-preview-paragraph,
+.office-preview-title,
+.office-preview-heading1,
+.office-preview-heading2,
+.office-preview-heading3 {
+  margin: 0 0 0.8em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.office-preview-paragraph {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.office-preview-title {
+  margin-bottom: 1em;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+}
+
+.office-preview-heading1 {
+  margin-top: 1.25em;
+  font-size: var(--text-xl);
+}
+
+.office-preview-heading2 {
+  margin-top: 1.1em;
+  font-size: var(--text-lg);
+}
+
+.office-preview-heading3 {
+  margin-top: 1em;
+  font-size: var(--text-base);
+}
+
+.office-word-table-wrap,
+.office-sheet-scroll {
+  max-width: 100%;
+  overflow: auto;
+  margin: 12px 0 18px;
+  border: 1px solid var(--ds-border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.office-word-table,
+.office-sheet-table {
+  border-collapse: collapse;
+  font-size: var(--text-xs-plus);
+}
+
+.office-word-table {
+  width: 100%;
+}
+
+.office-word-table td,
+.office-sheet-table td,
+.office-sheet-table th {
+  min-width: 72px;
+  max-width: 320px;
+  padding: 6px 8px;
+  border-right: 1px solid var(--ds-border-subtle);
+  border-bottom: 1px solid var(--ds-border-subtle);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-align: left;
+  vertical-align: top;
+}
+
+.office-word-table td {
+  border-left: 0;
+}
+
+.office-sheet-table th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 40px;
+  width: 40px;
+  color: var(--ds-text-muted);
+  background: var(--ds-bg-dock-raised);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.office-sheet-table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.office-sheet-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.office-sheet-tab {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.office-sheet-tab.selected {
+  color: var(--ds-text-primary);
+  background: var(--ds-bg-active);
+}
+
+.office-slides-preview {
+  display: grid;
+  gap: 18px;
+  padding-bottom: 32px;
+}
+
+.office-slide-canvas {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--ds-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--ds-bg-dock);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ds-text-primary) 8%, transparent);
+}
+
+.office-slide-number {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  color: var(--ds-text-faint);
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.office-slide-content {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 10px;
+  padding: 7%;
+}
+
+.office-slide-content .office-preview-paragraph {
+  margin: 0;
+}
+
+.office-slide-images {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  align-items: center;
+}
+
+.office-slide-images img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+  object-fit: contain;
+}
+
+.office-preview-cap,
+.office-preview-empty {
+  padding: 8px 0;
+  color: var(--ds-text-muted);
+  font-size: var(--text-xs);
+}
+
 /* Round review has one vertical scroll owner, not nested diff viewports. */
 .review-round-toolbar { gap: 6px; }
 .review-select.review-round-scope { flex: 0 0 auto; width: auto; height: 24px; min-height: 24px; padding: 1px 8px; }

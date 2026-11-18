@@ -12,11 +12,11 @@ const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 test("preset ladders carry the requested token values in ascending order", () => {
   assert.deepEqual(
     CONTEXT_WINDOW_PRESETS.map((preset) => preset.tokens),
-    [128_000, 256_000, 312_000, 500_000, 1_000_000],
+    [256_000, 272_000, 312_000, 500_000, 1_000_000],
   );
   assert.deepEqual(
     CONTEXT_WINDOW_PRESETS.map((preset) => preset.label),
-    ["128k", "256k", "312k", "500k", "1M"],
+    ["256k", "272k", "312k", "500k", "1M"],
   );
   assert.deepEqual(
     MAX_OUTPUT_PRESETS.map((preset) => preset.tokens),
@@ -35,7 +35,8 @@ test("preset labels stay language-neutral tokens", () => {
 });
 
 test("matchPresetIndex highlights only an exact token count", () => {
-  assert.equal(matchPresetIndex(CONTEXT_WINDOW_PRESETS, 128_000), 0);
+  assert.equal(matchPresetIndex(CONTEXT_WINDOW_PRESETS, 272_000), 1);
+  assert.equal(matchPresetIndex(CONTEXT_WINDOW_PRESETS, 128_000), -1);
   assert.equal(matchPresetIndex(CONTEXT_WINDOW_PRESETS, 1_000_000), 4);
   assert.equal(matchPresetIndex(MAX_OUTPUT_PRESETS, 8_000), 1);
   // Free-form defaults (131,072 context / 8,192 output) and hand-typed

@@ -1972,7 +1972,14 @@ Renderer IPC kept for the Plan-safe preview facade and URL fallback:
   `node_modules`, and the default ignore subset of
   [15-workspace-ignore-rules](15-workspace-ignore-rules.md)
 - `fs/read({path, mimeType?})` → text (≤512KB) / image data URL (≤5MB) /
-  binary / tooLarge. Relative paths resolve inside the workspace root;
+  bounded Office preview (≤25MB `.docx`, `.xlsx`, `.pptx`, `.docm`, `.xlsm`,
+  or `.pptm`) / binary / tooLarge. Office files are parsed locally; macros,
+  external relationships, OLE objects, and formula execution are excluded.
+  Word layout uses a sandboxed local renderer; spreadsheet and presentation
+  previews preserve supported cell values and object positions, but do not
+  guarantee full Microsoft Office fidelity. The separate plugin `fs.readPreview`
+  contract retains its existing binary result for Office files, on both local
+  and remote hosts. Relative paths resolve inside the workspace root;
   `attachments/<sha256>` blobs and absolute paths already inside the
   workspace, `<data_dir>/scratch/`, or `<data_dir>/attachments/` are also
   accepted after a realpath check (D334 / ADR 0172), as is an absolute path in

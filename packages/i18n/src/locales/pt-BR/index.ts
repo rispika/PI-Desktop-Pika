@@ -2355,6 +2355,7 @@ export const ptBR = {
       reveal: "Revelar no Finder",
       binary: "Arquivo binário — pré-visualização indisponível",
       tooLarge: "O arquivo é grande demais para pré-visualização",
+      previewTruncated: "Pré-visualização truncada",
       openFailed: "Não foi possível abrir o arquivo com o aplicativo padrão."
     }
   },

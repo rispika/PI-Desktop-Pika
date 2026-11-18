@@ -80,7 +80,7 @@ export function createWorkspacePluginFiles(options: {
         if (typeof preview.dataUrl !== "string") throw new RacpError("INTERNAL", "image preview is missing its data");
         return { ...metadata, kind: "image", dataUrl: preview.dataUrl };
       }
-      return { ...metadata, kind: preview.kind };
+      return { ...metadata, kind: preview.kind === "office" ? "binary" : preview.kind };
     }
     if (input.operation !== "list" || !info.isDirectory()) {
       throw new RacpError("INVALID_ARGUMENT", "only directories can be listed");

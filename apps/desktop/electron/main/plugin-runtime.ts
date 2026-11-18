@@ -6138,7 +6138,8 @@ export class PluginRuntime {
             });
             throw apiError("INVALID_ARGUMENT", "only files can be previewed");
           }
-          const preview = await previewFile(full, rel);
+          const result = await previewFile(full, rel);
+          const preview = result.kind === "office" ? { kind: "binary" as const, size: result.size } : result;
           this.assertFileWorkspace(loaded, admitted);
           this.services.audit?.({
             pluginId,

@@ -8,8 +8,8 @@
 export type LimitPreset = { label: string; tokens: number };
 
 export const CONTEXT_WINDOW_PRESETS: readonly LimitPreset[] = [
-  { label: "128k", tokens: 128_000 },
   { label: "256k", tokens: 256_000 },
+  { label: "272k", tokens: 272_000 },
   { label: "312k", tokens: 312_000 },
   { label: "500k", tokens: 500_000 },
   { label: "1M", tokens: 1_000_000 },

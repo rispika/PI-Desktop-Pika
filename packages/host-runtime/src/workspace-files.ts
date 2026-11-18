@@ -1,6 +1,11 @@
 import { readFile, readdir, realpath, stat } from "node:fs/promises";
 import nodePath, { type PlatformPath, basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import type { FsEntry, FsImageDataUrlResult, FsReadResult } from "@pi-desktop/shared";
+import {
+  MAX_OFFICE_BYTES,
+  isOfficePreviewPath,
+  previewOfficeFile,
+} from "./office-preview.ts";
 
 /**
  * Read-only workspace file access for the work panel files tab
@@ -333,6 +338,20 @@ export async function previewFile(
       dataUrl: `data:${imageMime};base64,${buffer.toString("base64")}`,
       size: buffer.length,
     };
+  }
+
+  if (isOfficePreviewPath(rel, mimeType)) {
+    if (info.size > MAX_OFFICE_BYTES) {
+      return { kind: "tooLarge", size: info.size };
+    }
+    const buffer = await readFile(fullPath);
+    if (buffer.length > MAX_OFFICE_BYTES) {
+      return { kind: "tooLarge", size: buffer.length };
+    }
+    const office = await previewOfficeFile(buffer, rel, mimeType);
+    return office
+      ? { kind: "office", office, size: buffer.length }
+      : { kind: "binary", size: buffer.length };
   }
 
   if (info.size > MAX_TEXT_BYTES) {

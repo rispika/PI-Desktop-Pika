@@ -11,7 +11,7 @@ import {
   utimesSync,
   writeFileSync,
 } from "node:fs";
-import { register } from "node:module";
+import { createRequire, register } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -19,6 +19,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const desktopRoot = join(here, "..");
 const hostProcessEntry = join(desktopRoot, "electron/main/plugin-host-process.mjs");
+const JSZip = createRequire(import.meta.resolve("@pi-desktop/host-runtime"))("jszip");
 
 // Set before the runtime is imported so the write ledger and per-plugin data
 // land in a throwaway directory instead of the developer's real one.
@@ -225,6 +226,23 @@ test("a read inside the declared scope lands and one outside is refused", async 
       (e) => e.api === "fs.read" && e.errorCode === "PERMISSION_DENIED" && e.path === "notes.txt",
     ),
     "the refused read is audited",
+  );
+});
+
+test("Office previews preserve the plugin binary result contract", async (t) => {
+  const { runtime, ws } = await harness(t, {
+    id: "fs.read.office",
+    permissions: ["fs.read"],
+    fs: { read: { scope: ["docs/**"] } },
+  });
+  const zip = new JSZip();
+  zip.file("[Content_Types].xml", "<Types/>");
+  zip.file("word/document.xml", '<w:document xmlns:w="urn:w"><w:body><w:p><w:r><w:t>Report</w:t></w:r></w:p></w:body></w:document>');
+  const bytes = await zip.generateAsync({ type: "nodebuffer" });
+  writeFileSync(join(ws, "docs/report.docx"), bytes);
+  assert.deepEqual(
+    await runtime.invokePanelBridge("fs.read.office", "fs.readPreview", { path: "docs/report.docx" }),
+    { kind: "binary", size: bytes.length },
   );
 });
 

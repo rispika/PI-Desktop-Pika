@@ -2389,6 +2389,7 @@ sklm: {
       "reveal": "Révéler dans le Finder",
       "binary": "Fichier binaire — aperçu indisponible",
       "tooLarge": "Le fichier est trop volumineux pour être prévisualisé",
+      "previewTruncated": "Aperçu tronqué",
       "openFailed": "Impossible d’ouvrir le fichier avec l’application par défaut."
     }
   },

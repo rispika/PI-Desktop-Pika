@@ -2389,6 +2389,7 @@ sklm: {
       "reveal": "Mostrar en el Finder",
       "binary": "Archivo binario: vista previa no disponible",
       "tooLarge": "El archivo es demasiado grande para obtener una vista previa",
+      "previewTruncated": "Vista previa truncada",
       "openFailed": "No se pudo abrir el archivo con la aplicación predeterminada."
     }
   },

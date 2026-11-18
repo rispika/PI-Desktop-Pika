@@ -4331,7 +4331,7 @@ default nor provider configuration. OAuth accounts remain in their separate sect
    for attachment and delegation checkboxes. The seven thinking controls use
    the canonical values as-is and are not localized. Each numeric limit is
    topped by a preset ladder of five compact chips (context window
-   128k/256k/312k/500k/1M, max output 4k/8k/16k/32k/128k) in the thinking
+   256k/272k/312k/500k/1M, max output 4k/8k/16k/32k/128k) in the thinking
    chips' segmented-track language: clicking a chip writes its token count
    into the input, the input stays hand-editable, and the chip matching the
    current value is highlighted; the labels use the canonical values as-is

@@ -5,6 +5,7 @@ import { api } from "../../lib/api";
 import { sessionAllows } from "../../lib/remote-session-safety";
 import { useAppStore } from "../../stores/app-store";
 import { Button, SegmentedControl } from "../ui";
+import { OfficePreview } from "../workpanel/OfficePreview";
 import "../../styles/remote-mvp.css";
 
 export function RemoteWorkspace({ session, width, exiting, onExitAnimationEnd }: {
@@ -82,6 +83,8 @@ export function RemoteWorkspace({ session, width, exiting, onExitAnimationEnd }:
             onClick={() => void open(entry)}>{entry.name}{entry.kind === "dir" ? "/" : ""}</Button>)}</div>
           {file && <section><h3>{file.path}</h3>{file.read.kind === "text"
             ? <pre>{file.read.content}</pre>
+            : file.read.kind === "office" && file.read.office
+              ? <OfficePreview preview={file.read.office} />
             : <p>{t(file.read.kind === "tooLarge" ? "truncated" : "binary")}</p>}</section>}
         </>}
         {tab === "review" && diff && <>

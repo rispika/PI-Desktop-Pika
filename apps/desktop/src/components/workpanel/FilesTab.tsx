@@ -31,6 +31,7 @@ import {
   IconFolder,
 } from "../icons";
 import { WorkTabEmpty } from "./WorkTabEmpty";
+import { OfficePreview } from "./OfficePreview";
 
 const VIEWER_LINE_CAP = 5000;
 
@@ -407,6 +408,8 @@ export function FilesTab() {
             <div className="file-viewer-image">
               <img src={file.dataUrl} alt={selected} />
             </div>
+          ) : file.kind === "office" && file.office ? (
+            <OfficePreview preview={file.office} />
           ) : (
             <WorkTabEmpty
               icon={IconFileText}

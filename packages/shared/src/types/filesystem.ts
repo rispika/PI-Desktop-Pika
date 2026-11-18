@@ -5,12 +5,65 @@ export type FsEntry = {
   size: number;
 };
 
+export type OfficeTextRun = {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  fontSize?: number;
+  color?: string;
+};
+
+export type OfficeParagraph = {
+  align?: "left" | "center" | "right";
+  runs: OfficeTextRun[];
+  text: string;
+  style?: "title" | "heading1" | "heading2" | "heading3";
+};
+
+export type OfficeWordBlock =
+  | { kind: "paragraph"; paragraph: OfficeParagraph }
+  | { kind: "table"; rows: string[][] };
+
+export type OfficeSheet = {
+  name: string;
+  rows: string[][];
+  truncated: boolean;
+};
+
+export type OfficeSlide = {
+  number: number;
+  background?: string;
+  elements?: Array<{
+    x: number; y: number; width: number; height: number;
+    rotation?: number;
+    background?: string;
+    paragraphs: OfficeParagraph[];
+    imageDataUrl?: string;
+  }>;
+  paragraphs: OfficeParagraph[];
+  imageDataUrls: string[];
+};
+
+export type OfficePreview =
+  | { format: "word"; blocks: OfficeWordBlock[]; packageBase64?: string; truncated: boolean }
+  | { format: "spreadsheet"; sheets: OfficeSheet[]; truncated: boolean }
+  | {
+      format: "presentation";
+      slides: OfficeSlide[];
+      slideWidth: number;
+      slideHeight: number;
+      truncated: boolean;
+    };
+
 export type FsReadResult = {
-  kind: "text" | "image" | "binary" | "tooLarge";
+  kind: "text" | "image" | "office" | "binary" | "tooLarge";
   /** UTF-8 file content when kind is "text". */
   content?: string;
   /** Base64 data URL when kind is "image". */
   dataUrl?: string;
+  /** Bounded, renderer-friendly content when kind is "office". */
+  office?: OfficePreview;
   size: number;
 };
 

@@ -837,24 +837,44 @@ journeys cover successful reads, saves and directory browsing.
 ## E2E-060: Files tab browsing stays inside the workspace
 
 - **Preconditions**: Workspace with file artifacts for nested source, large
-  (>512KB), image, and binary files.
+  (>512KB), image, binary, Word (`.docx`), Excel (`.xlsx`), and PowerPoint
+  (`.pptx`) files.
 - **Steps**: 1) Activate each file artifact and verify a distinct path-keyed
   resource in the header switcher; browse the tree, expanding nested folders.
-  2) Open a source
-  file, the image, the binary, and the large file. 3) Use reveal-in-Finder.
+  2) Open a source file, the image, the Word, Excel, and PowerPoint files,
+  the binary, and the large file. 3) Use reveal-in-Finder.
   4) Attempt a traversal read (`../outside`) via devtools IPC. 5) Switch
   workspaces.
 - **Expected**: Directories list lazily, folders first, with `.git` /
   `node_modules` / build outputs hidden; text renders with syntax highlight
-  (capped at 5000 lines), images preview inline, binary and oversized files
-  show fallbacks with reveal still available. Traversal attempts are
-  rejected with `INVALID_ARGUMENT`; no workspace → empty state; switching
-  workspaces resets the tree and viewer.
+  (capped at 5000 lines), images preview inline, and modern OOXML Office files
+  render locally as bounded document, worksheet, and slide previews without
+  loading external resources or executing macros. Word uses a script-disabled,
+  network-blocked iframe for local page layout, headers, tables, and images;
+  unavailable or oversized layout payloads retain the text/table fallback.
+  Excel retains blank rows, text leading zeros, and cached numeric/date/percent
+  formatting, with column labels and sheet switching (no formula execution).
+  PowerPoint preserves explicit text/image positions, run sizes/colors, and
+  solid backgrounds where all content has supported coordinates; otherwise it
+  uses the complete sequential preview. Theme/layout inheritance, charts,
+  SmartArt, animations, merged Excel cells, and exact Office pagination/font
+  fidelity are not guaranteed. Verify a document switch during Word rendering
+  cannot publish stale output, malformed packages keep fallback available, and
+  external links, macros, OLE, and HTML chunks cannot execute. Office archives are parsed
+  only after the same workspace containment check; corrupt packages fall back
+  to binary, and oversized files show the size fallback. Binary and oversized
+  files keep reveal available. Traversal attempts are rejected with
+  `INVALID_ARGUMENT`; no workspace → empty state; switching workspaces resets
+  the tree and viewer.
 - **Specs linked**: `03-runtime/01-ipc-protocol.md` §13a, ADR 0019,
   `03-runtime/15-workspace-ignore-rules.md`
 - **Acceptance**: D (workspace), Security
 - **Milestone**: M5
-- **Status**: Unit-covered (`fs-panel-guard.test.mjs`); full UI scenario Draft
+- **Status**: Unit-covered (`fs-panel-guard.test.mjs`,
+  `office-preview.test.ts`); isolated renderer interactions covered by
+  `office-preview-renderer.test.mjs` at desktop and narrow widths. Plugin
+  Office-to-binary compatibility is covered by `plugin-fs-scope.test.mjs` and
+  `apps/pi-host/src/plugin-workspace-files.test.ts`; full UI scenario Draft
 
 ---
 

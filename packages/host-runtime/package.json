@@ -20,7 +20,10 @@
   "dependencies": {
     "@pi-desktop/agent-host": "workspace:*",
     "@pi-desktop/agent-runtime": "workspace:*",
-    "@pi-desktop/shared": "workspace:*"
+    "@pi-desktop/shared": "workspace:*",
+    "fast-xml-parser": "^5.12.1",
+    "jszip": "^3.10.2",
+    "ssf": "0.11.2"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

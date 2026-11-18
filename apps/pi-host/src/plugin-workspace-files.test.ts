@@ -1,8 +1,11 @@
 import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { createRequire } from "node:module";
 import { join } from "node:path";
 import { afterEach, expect, it } from "vitest";
 import { createHostOperations } from "./host-operations.js";
+
+const JSZip = createRequire(import.meta.resolve("@pi-desktop/host-runtime"))("jszip");
 
 const temporary: string[] = [];
 afterEach(async () => {
@@ -143,6 +146,18 @@ it("returns explicit oversized/binary results and missing-file errors", { timeou
   expect(await read("preview", "binary.dat")).toMatchObject({ kind: "binary", size: 3 });
   await expect(read("preview", "missing.txt")).rejects.toMatchObject({ code: "REMOTE_PATH_NOT_FOUND" });
   await expect(read("preview", "docs")).rejects.toMatchObject({ code: "INVALID_ARGUMENT" });
+});
+
+it("keeps Office files within the existing plugin preview contract", async () => {
+  const { root, read } = await fixture();
+  const zip = new JSZip();
+  zip.file("[Content_Types].xml", "<Types/>");
+  zip.file("word/document.xml", '<w:document xmlns:w="urn:w"><w:body><w:p><w:r><w:t>Report</w:t></w:r></w:p></w:body></w:document>');
+  const bytes = await zip.generateAsync({ type: "nodebuffer" });
+  await writeFile(join(root, "report.docx"), bytes);
+  expect(await read("preview", "report.docx")).toEqual({
+    kind: "binary", size: bytes.length, mtimeMs: expect.any(Number),
+  });
 });
 
 it("refuses credential directories used as the workspace root, including aliases", { timeout: 60_000 }, async () => {
